@@ -7,20 +7,29 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import androidx.work.Worker
+import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.daytracker.MainActivity
-import com.example.daytracker.R
+import com.example.daytracker.data.AppDatabase
 
 class ReminderWorker(
     private val context: Context,
     workerParams: WorkerParameters
-) : Worker(context, workerParams) {
+) : CoroutineWorker(context, workerParams) {
 
-    override fun doWork(): Result {
-        val taskTitle = inputData.getString("taskTitle") ?: "Task Reminder"
+    override suspend fun doWork(): Result {
         val taskId = inputData.getLong("taskId", -1)
+        
+        // Double check database to ensure task is not completed or deleted before firing
+        if (taskId != -1L) {
+            val db = AppDatabase.getDatabase(context)
+            val task = db.taskDao().getTaskById(taskId)
+            if (task == null || task.isCompleted) {
+                return Result.success()
+            }
+        }
 
+        val taskTitle = inputData.getString("taskTitle") ?: "Task Reminder"
         showNotification(taskTitle, taskId)
 
         return Result.success()
@@ -58,6 +67,7 @@ class ReminderWorker(
             .setContentTitle("Day Tracker Reminder")
             .setContentText(title)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 

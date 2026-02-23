@@ -22,6 +22,12 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE dateInMillis >= :startOfDay AND dateInMillis <= :endOfDay ORDER BY priority DESC, timeInMillis ASC")
     fun getTasksForDate(startOfDay: Long, endOfDay: Long): Flow<List<Task>>
 
+    @Query("SELECT dateInMillis FROM tasks")
+    fun getAllTaskDates(): Flow<List<Long>>
+
+    @Query("SELECT * FROM tasks")
+    fun getAllTasks(): Flow<List<Task>>
+
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     suspend fun getTaskById(taskId: Long): Task?
 }

@@ -26,6 +26,14 @@ class TaskRepository(private val taskDao: TaskDao) {
         return taskDao.getTasksForDate(startOfDay, endOfDay)
     }
 
+    fun getAllTaskDates(): Flow<List<Long>> {
+        return taskDao.getAllTaskDates()
+    }
+
+    fun getAllTasks(): Flow<List<Task>> {
+        return taskDao.getAllTasks()
+    }
+
     suspend fun getTaskById(id: Long): Task? {
         return taskDao.getTaskById(id)
     }
